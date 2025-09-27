@@ -1,0 +1,154 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\C#\\SEP490_G154_Service\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|d:\\c#\\sep490_g154_service\\sep490_g154_service\\controllers\\homesstaycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|solutionrelative:sep490_g154_service\\controllers\\homesstaycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|d:\\c#\\sep490_g154_service\\sep490_g154_service\\dtos\\homestaydto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|solutionrelative:sep490_g154_service\\dtos\\homestaydto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|d:\\c#\\sep490_g154_service\\sep490_g154_service\\dtos\\roomtypedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|solutionrelative:sep490_g154_service\\dtos\\roomtypedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|d:\\c#\\sep490_g154_service\\sep490_g154_service\\models\\booking.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|solutionrelative:sep490_g154_service\\models\\booking.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|d:\\c#\\sep490_g154_service\\sep490_g154_service\\models\\bookingitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|solutionrelative:sep490_g154_service\\models\\bookingitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|d:\\c#\\sep490_g154_service\\sep490_g154_service\\models\\homesstayimage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|solutionrelative:sep490_g154_service\\models\\homesstayimage.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|d:\\c#\\sep490_g154_service\\sep490_g154_service\\models\\homestay.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|solutionrelative:sep490_g154_service\\models\\homestay.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|d:\\c#\\sep490_g154_service\\sep490_g154_service\\models\\homestayroomtype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6861639A-D9CA-4A80-8B4E-F07F0F793F8A}|SEP490_G154_Service\\SEP490_G154_Service.csproj|solutionrelative:sep490_g154_service\\models\\homestayroomtype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "HomestayDTO.cs",
+              "DocumentMoniker": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\DTOs\\HomestayDTO.cs",
+              "RelativeDocumentMoniker": "SEP490_G154_Service\\DTOs\\HomestayDTO.cs",
+              "ToolTip": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\DTOs\\HomestayDTO.cs",
+              "RelativeToolTip": "SEP490_G154_Service\\DTOs\\HomestayDTO.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T04:31:04.213Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "RoomTypeDTO.cs",
+              "DocumentMoniker": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\DTOs\\RoomTypeDTO.cs",
+              "RelativeDocumentMoniker": "SEP490_G154_Service\\DTOs\\RoomTypeDTO.cs",
+              "ToolTip": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\DTOs\\RoomTypeDTO.cs",
+              "RelativeToolTip": "SEP490_G154_Service\\DTOs\\RoomTypeDTO.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T04:30:32.625Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Booking.cs",
+              "DocumentMoniker": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\Models\\Booking.cs",
+              "RelativeDocumentMoniker": "SEP490_G154_Service\\Models\\Booking.cs",
+              "ToolTip": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\Models\\Booking.cs",
+              "RelativeToolTip": "SEP490_G154_Service\\Models\\Booking.cs",
+              "ViewState": "AgIAABAAAAAAAAAAAAAYwCAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T04:26:45.92Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "BookingItem.cs",
+              "DocumentMoniker": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\Models\\BookingItem.cs",
+              "RelativeDocumentMoniker": "SEP490_G154_Service\\Models\\BookingItem.cs",
+              "ToolTip": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\Models\\BookingItem.cs",
+              "RelativeToolTip": "SEP490_G154_Service\\Models\\BookingItem.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T04:26:30.029Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "HomesStayImage.cs",
+              "DocumentMoniker": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\Models\\HomesStayImage.cs",
+              "RelativeDocumentMoniker": "SEP490_G154_Service\\Models\\HomesStayImage.cs",
+              "ToolTip": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\Models\\HomesStayImage.cs",
+              "RelativeToolTip": "SEP490_G154_Service\\Models\\HomesStayImage.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T04:23:13.415Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "HomesStayController.cs",
+              "DocumentMoniker": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\Controllers\\HomesStayController.cs",
+              "RelativeDocumentMoniker": "SEP490_G154_Service\\Controllers\\HomesStayController.cs",
+              "ToolTip": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\Controllers\\HomesStayController.cs*",
+              "RelativeToolTip": "SEP490_G154_Service\\Controllers\\HomesStayController.cs*",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAswCgAAABUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T04:21:51.794Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Homestay.cs",
+              "DocumentMoniker": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\Models\\Homestay.cs",
+              "RelativeDocumentMoniker": "SEP490_G154_Service\\Models\\Homestay.cs",
+              "ToolTip": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\Models\\Homestay.cs",
+              "RelativeToolTip": "SEP490_G154_Service\\Models\\Homestay.cs",
+              "ViewState": "AgIAAAEAAAAAAAAAAAAIwB8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T04:23:04.23Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "HomestayRoomType.cs",
+              "DocumentMoniker": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\Models\\HomestayRoomType.cs",
+              "RelativeDocumentMoniker": "SEP490_G154_Service\\Models\\HomestayRoomType.cs",
+              "ToolTip": "D:\\C#\\SEP490_G154_Service\\SEP490_G154_Service\\Models\\HomestayRoomType.cs",
+              "RelativeToolTip": "SEP490_G154_Service\\Models\\HomestayRoomType.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-27T04:22:54.383Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

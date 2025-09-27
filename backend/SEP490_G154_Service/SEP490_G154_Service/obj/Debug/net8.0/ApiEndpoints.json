@@ -1,0 +1,235 @@
+[
+  {
+    "ContainingType": "SEP490_G154_Service.Controllers.HomesStayController",
+    "Method": "FilterHeader",
+    "RelativePath": "api/HomesStay/FilterHeader",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "checkIn",
+        "Type": "System.DateOnly",
+        "IsRequired": false
+      },
+      {
+        "Name": "checkOut",
+        "Type": "System.DateOnly",
+        "IsRequired": false
+      },
+      {
+        "Name": "guests",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "rooms",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SEP490_G154_Service.Controllers.LoginController",
+    "Method": "Login",
+    "RelativePath": "api/Login/Login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "email",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "password",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SEP490_G154_Service.Controllers.LoginController",
+    "Method": "LoginWithFacebookCustomer",
+    "RelativePath": "api/Login/LoginWithFacebookCustomer",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "SEP490_G154_Service.DTOs.FacebookLoginDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SEP490_G154_Service.Controllers.LoginController",
+    "Method": "LoginWithFacebookHost",
+    "RelativePath": "api/Login/LoginWithFacebookHost",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "SEP490_G154_Service.DTOs.FacebookLoginDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SEP490_G154_Service.Controllers.LoginController",
+    "Method": "LoginWithFacebookSeller",
+    "RelativePath": "api/Login/LoginWithFacebookSeller",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "SEP490_G154_Service.DTOs.FacebookLoginDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SEP490_G154_Service.Controllers.LoginController",
+    "Method": "LoginWithGoogleCustomer",
+    "RelativePath": "api/Login/LoginWithGoogleCustomer",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "SEP490_G154_Service.DTOs.GoogleLoginDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SEP490_G154_Service.Controllers.LoginController",
+    "Method": "LoginWithGoogleHost",
+    "RelativePath": "api/Login/LoginWithGoogleHost",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "SEP490_G154_Service.DTOs.GoogleLoginDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SEP490_G154_Service.Controllers.LoginController",
+    "Method": "LoginWithGoogle",
+    "RelativePath": "api/Login/LoginWithGoogleSeller",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "SEP490_G154_Service.DTOs.GoogleLoginDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SEP490_G154_Service.Controllers.LoginController",
+    "Method": "RegisterAdmin",
+    "RelativePath": "api/Login/RegisterAdmin",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "newAcc",
+        "Type": "SEP490_G154_Service.DTOs.CreateAcc",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SEP490_G154_Service.Controllers.LoginController",
+    "Method": "RegisterCustomer",
+    "RelativePath": "api/Login/RegisterCustomer",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "newAcc",
+        "Type": "SEP490_G154_Service.DTOs.CreateAcc",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SEP490_G154_Service.Controllers.LoginController",
+    "Method": "RegisterHost",
+    "RelativePath": "api/Login/RegisterHost",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "newAcc",
+        "Type": "SEP490_G154_Service.DTOs.CreateAcc",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SEP490_G154_Service.Controllers.LoginController",
+    "Method": "RegisterSeller",
+    "RelativePath": "api/Login/RegisterSeller",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "newAcc",
+        "Type": "SEP490_G154_Service.DTOs.CreateAcc",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SEP490_G154_Service.Controllers.WeatherForecastController",
+    "Method": "Get",
+    "RelativePath": "WeatherForecast",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[SEP490_G154_Service.WeatherForecast, SEP490_G154_Service, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ],
+    "EndpointName": "GetWeatherForecast"
+  }
+]

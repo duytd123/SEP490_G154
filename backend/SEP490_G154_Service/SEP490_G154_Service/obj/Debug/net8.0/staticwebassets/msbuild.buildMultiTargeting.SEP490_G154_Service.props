@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\SEP490_G154_Service.props" />
+</Project>
