@@ -816,6 +816,87 @@ namespace SEP490_G154_Service.Controllers
             }
         }
 
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO request)
+        {
+            if (string.IsNullOrEmpty(request.Email))
+                return BadRequest("Email không được để trống.");
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            if (user == null)
+                return NotFound("Email không tồn tại.");
+
+            // Sinh token reset (có hạn 15 phút)
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+            new Claim(ClaimTypes.Email, user.Email)
+        }),
+                Expires = DateTime.UtcNow.AddMinutes(15),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var resetToken = tokenHandler.WriteToken(token);
+
+            // (tuỳ chọn) Lưu token vào DB để verify
+            user.Status = 2; // Ví dụ: đánh dấu đang yêu cầu reset
+            await _context.SaveChangesAsync();
+
+            // Thực tế: gửi mail cho user chứa link: https://your-frontend.com/reset?token=resetToken
+            return Ok(new
+            {
+                message = "Token reset password đã được tạo. Dùng token này để gọi ResetPassword.",
+                resetToken
+            });
+        }
+        [HttpPost("ResetPasswordWithToken")]
+        public async Task<IActionResult> ResetPasswordWithToken([FromBody] ResetPasswordWithTokenDTO request)
+        {
+            if (string.IsNullOrEmpty(request.Token) || string.IsNullOrEmpty(request.NewPassword))
+                return BadRequest("Token và mật khẩu mới không được để trống.");
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
+
+            try
+            {
+                // Xác thực token
+                var principal = tokenHandler.ValidateToken(request.Token, new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+
+                var email = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(email))
+                    return Unauthorized("Token không hợp lệ.");
+
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (user == null)
+                    return NotFound("User không tồn tại.");
+
+                // Hash mật khẩu mới
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+
+
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Đổi mật khẩu thành công." });
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(new { message = "Token không hợp lệ hoặc đã hết hạn.", error = ex.Message });
+            }
+        }
+
     }
 
 
