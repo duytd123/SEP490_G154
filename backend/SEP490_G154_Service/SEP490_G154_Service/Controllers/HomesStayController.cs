@@ -1,7 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SEP490_G154_Service.DTOs;
 using SEP490_G154_Service.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace SEP490_G154_Service.Controllers
 {
@@ -53,7 +58,7 @@ namespace SEP490_G154_Service.Controllers
         }
 
 
-
+      
 
     }
 }
