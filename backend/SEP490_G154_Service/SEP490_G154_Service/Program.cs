@@ -61,7 +61,9 @@ namespace SEP490_G154_Service
                           .AllowAnyMethod();
                 });
             });
-
+            // Đăng ký DI cho LoginService
+            builder.Services.AddScoped<ILogin, LoginService>();
+            builder.Services.AddScoped<IHomeStay, HomeStayService>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
