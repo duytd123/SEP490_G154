@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.EntityFrameworkCore;
+using SEP490_G154_Service.Interface;
 using SEP490_G154_Service.Models;
+using SEP490_G154_Service.Service;
 
 
 
