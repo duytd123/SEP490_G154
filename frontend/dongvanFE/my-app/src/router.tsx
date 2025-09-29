@@ -3,6 +3,8 @@ import type { RouteObject } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Home from "./pages/Home";
+import HomestaySearch from "./pages/homestay/homestaySearch";
+
 
 const routes: RouteObject[] = [
   { 
@@ -18,6 +20,7 @@ const routes: RouteObject[] = [
     element: <Register /> 
   },
   { path: "/home", element: <Home /> },
+  { path: "/homestay", element: <HomestaySearch /> },
 ];
 
 export const router = createBrowserRouter(routes);
