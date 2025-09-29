@@ -124,7 +124,7 @@ export default function DongVanLogin({
 
             <div className="mt-8 p-4 rounded-2xl bg-amber-100/60 border border-amber-200">
               <p className="text-amber-900 text-sm">
-                “Giữ hồn đá – lưu vị ẩm thực – kết nối cộng đồng.”
+                “Giữ hồn đá – lưu vị ẩm thực – kết nối cộng đồng”
               </p>
             </div>
           </div>
