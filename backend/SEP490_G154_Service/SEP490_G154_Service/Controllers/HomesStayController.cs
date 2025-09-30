@@ -32,5 +32,20 @@ namespace SEP490_G154_Service.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+
+        [HttpPost("Reindex")]
+        public async Task<IActionResult> Reindex()
+        {
+            var result = await _homeStayService.IndexAllHomestaysAsync();
+            return Ok(result);
+        }
+
+        [HttpPost("SearchElastic")]
+        public async Task<IActionResult> SearchElastic([FromBody] FilterWithElastic request, [FromQuery] string? keyword)
+        {
+            var result = await _homeStayService.FilterHeaderWithElasticAsync(request, keyword);
+            return Ok(result);
+        }
     }
 }
