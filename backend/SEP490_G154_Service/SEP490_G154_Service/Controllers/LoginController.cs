@@ -71,11 +71,11 @@ namespace SEP490_G154_Service.Controllers
 
         [HttpPost("ForgotPassword")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO request)
-            => Ok(await _loginService.ForgotPasswordAsync(request));
+           => Ok(await _loginService.ForgotPasswordAsync(request));
 
-        [HttpPost("ResetPasswordWithToken")]
-        public async Task<IActionResult> ResetPasswordWithToken([FromBody] ResetPasswordWithTokenDTO request)
-            => Ok(await _loginService.ResetPasswordWithTokenAsync(request));
+        [HttpPost("ResetPasswordWithOtp")]
+        public async Task<IActionResult> ResetPasswordWithOtp([FromBody] ResetPasswordWithOtpDTO request)
+            => Ok(await _loginService.ResetPasswordWithOtpAsync(request));
     }
 }
 
