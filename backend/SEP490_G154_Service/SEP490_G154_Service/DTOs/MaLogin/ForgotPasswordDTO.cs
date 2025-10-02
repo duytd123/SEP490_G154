@@ -1,4 +1,4 @@
-﻿namespace SEP490_G154_Service.DTOs
+﻿namespace SEP490_G154_Service.DTOs.MaLogin
 {
     public class ForgotPasswordDTO
     {

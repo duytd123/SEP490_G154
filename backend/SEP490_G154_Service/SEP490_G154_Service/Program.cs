@@ -2,7 +2,13 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.EntityFrameworkCore;
+
+using Nest;
+
+using SEP490_G154_Service.Interface;
 using SEP490_G154_Service.Models;
+using SEP490_G154_Service.Service;
+using SEP490_G154_Service.sHub;
 
 
 
@@ -61,6 +67,22 @@ namespace SEP490_G154_Service
                           .AllowAnyMethod();
                 });
             });
+            // Đăng ký DI cho LoginService
+            builder.Services.AddScoped<ILogin, LoginService>();
+            builder.Services.AddScoped<IHomeStay, HomeStayService>();
+
+            // cấu hình ElasticSearch client
+            builder.Services.AddSingleton<IElasticClient>(sp =>
+            {
+                var settings = new ConnectionSettings(new Uri("http://localhost:9200")) // URL Elastic
+                    .DefaultIndex("homestays"); // index mặc định
+                return new ElasticClient(settings);
+            });
+
+
+            builder.Services.AddScoped<EmailService>();
+
+            builder.Services.AddMemoryCache();
 
             var app = builder.Build();
 
