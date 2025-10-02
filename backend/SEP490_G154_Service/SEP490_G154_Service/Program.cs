@@ -8,6 +8,7 @@ using Nest;
 using SEP490_G154_Service.Interface;
 using SEP490_G154_Service.Models;
 using SEP490_G154_Service.Service;
+using SEP490_G154_Service.sHub;
 
 
 
@@ -77,6 +78,11 @@ namespace SEP490_G154_Service
                     .DefaultIndex("homestays"); // index mặc định
                 return new ElasticClient(settings);
             });
+
+
+            builder.Services.AddScoped<EmailService>();
+
+            builder.Services.AddMemoryCache();
 
             var app = builder.Build();
 

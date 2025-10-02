@@ -12,8 +12,11 @@ namespace SEP490_G154_Service.Interface
 
         Task<object> LoginWithFacebookAsync(FacebookLoginDTO request, int roleId);
 
+
+        // Quên mật khẩu (gửi OTP về email)
         Task<object> ForgotPasswordAsync(ForgotPasswordDTO request);
 
-        Task<object> ResetPasswordWithTokenAsync(ResetPasswordWithTokenDTO request);
+        // Reset mật khẩu với OTP
+        Task<object> ResetPasswordWithOtpAsync(ResetPasswordWithOtpDTO request);
     }
 }

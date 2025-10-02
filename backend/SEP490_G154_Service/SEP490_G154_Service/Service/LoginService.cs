@@ -1,10 +1,12 @@
 ﻿using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using SEP490_G154_Service.DTOs.MaLogin;
 using SEP490_G154_Service.Interface;
 using SEP490_G154_Service.Models;
+using SEP490_G154_Service.sHub;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -15,11 +17,15 @@ namespace SEP490_G154_Service.Service
     {
         private readonly G154context _context;
         private readonly IConfiguration _configuration;
+        private readonly IMemoryCache _cache;
+        private readonly EmailService _emailService;
 
-        public LoginService(G154context context, IConfiguration configuration)
+        public LoginService(G154context context, IConfiguration configuration, IMemoryCache cache, EmailService service)
         {
             _context = context;
             _configuration = configuration;
+            _cache = cache;
+            _emailService = service;
         }
         // ========= LOGIN THƯỜNG =========
         public async Task<LoginResponseDTO> LoginAsync(LoginRequestDTO request)
@@ -156,47 +162,66 @@ namespace SEP490_G154_Service.Service
             return new { user.Email, user.FullName, Role = roleName, Token = token };
         }
 
-        // ========= FORGOT PASSWORD =========
+        // ========== FORGOT PASSWORD ==========
         public async Task<object> ForgotPasswordAsync(ForgotPasswordDTO request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-            if (user == null) throw new KeyNotFoundException("Email not found");
-
-            var resetToken = GenerateJwtToken(user.Email, "ResetPassword");
-
-            user.Status = 2;
-            await _context.SaveChangesAsync();
-
-            return new { message = "Reset token created", resetToken };
-        }
-
-        // ========= RESET PASSWORD =========
-        public async Task<object> ResetPasswordWithTokenAsync(ResetPasswordWithTokenDTO request)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
-
-            var principal = tokenHandler.ValidateToken(request.Token, new TokenValidationParameters
+            try
             {
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(key),
-                ClockSkew = TimeSpan.Zero
-            }, out SecurityToken validatedToken);
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+                if (user == null)
+                    throw new KeyNotFoundException("Email not found");
 
-            var email = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email)) throw new UnauthorizedAccessException("Invalid token");
+                // Sinh OTP ngẫu nhiên 6 số
+                var otp = new Random().Next(100000, 999999).ToString();
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null) throw new KeyNotFoundException("User not found");
+                // Lưu OTP vào cache trong 5 phút
+                _cache.Set($"otp_{user.Email}", otp, TimeSpan.FromMinutes(5));
 
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-            _context.Update(user);
-            await _context.SaveChangesAsync();
+                // Gửi OTP qua Email
+                await _emailService.SendEmailAsync(
+                    user.Email,
+                    "Password Reset OTP",
+                    $"<h3>Your OTP code is: <b>{otp}</b></h3><p>This code will expire in 5 minutes.</p>"
+                );
 
-            return new { message = "Password reset successful" };
+                return new { success = true, message = "OTP has been sent to your email." };
+            }
+            catch (Exception ex)
+            {
+                // Log ra console hoặc log file
+                Console.WriteLine($"[ForgotPasswordAsync] Error: {ex.Message}");
+                return new { success = false, message = "Failed to send OTP", error = ex.Message };
+            }
         }
+
+        // ========== RESET PASSWORD WITH OTP ==========
+        public async Task<object> ResetPasswordWithOtpAsync(ResetPasswordWithOtpDTO request)
+        {
+            try
+            {
+                if (!_cache.TryGetValue($"otp_{request.Email}", out string? cachedOtp) || cachedOtp != request.Otp)
+                    throw new UnauthorizedAccessException("Invalid or expired OTP");
+
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+                if (user == null) throw new KeyNotFoundException("User not found");
+
+                // Cập nhật password
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+                _context.Update(user);
+                await _context.SaveChangesAsync();
+
+                // Xoá OTP sau khi dùng
+                _cache.Remove($"otp_{request.Email}");
+
+                return new { success = true, message = "Password reset successful" };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ResetPasswordWithOtpAsync] Error: {ex.Message}");
+                return new { success = false, message = "Password reset failed", error = ex.Message };
+            }
+        }
+
 
         // ========= HELPER =========
         private string GenerateJwtToken(string email, string role)
