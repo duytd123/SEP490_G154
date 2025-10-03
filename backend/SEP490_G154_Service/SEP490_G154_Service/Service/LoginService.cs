@@ -20,13 +20,14 @@ namespace SEP490_G154_Service.Service
         private readonly IMemoryCache _cache;
         private readonly EmailService _emailService;
 
-        public LoginService(G154context context, IConfiguration configuration, IMemoryCache cache, EmailService service)
+        public LoginService(G154context context, IConfiguration configuration, IMemoryCache cache, EmailService emailService)
         {
             _context = context;
             _configuration = configuration;
             _cache = cache;
-            _emailService = service;
+            _emailService = emailService;
         }
+
         // ========= LOGIN THƯỜNG =========
         public async Task<LoginResponseDTO> LoginAsync(LoginRequestDTO request)
         {
@@ -37,11 +38,11 @@ namespace SEP490_G154_Service.Service
 
             bool isValidPassword = false;
 
-            if (user.PasswordHash.StartsWith("$2"))
+            if (user.PasswordHash.StartsWith("$2")) // đã hash bcrypt
             {
                 isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
             }
-            else if (request.Password == user.PasswordHash)
+            else if (request.Password == user.PasswordHash) // chưa hash
             {
                 isValidPassword = true;
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
@@ -52,7 +53,7 @@ namespace SEP490_G154_Service.Service
             if (!isValidPassword) throw new UnauthorizedAccessException("Invalid email or password");
 
             var role = user.Roles.Select(r => r.Name).FirstOrDefault() ?? "Customer";
-            var token = GenerateJwtToken(user.Email, role);
+            var token = GenerateJwtToken(user, role);
 
             return new LoginResponseDTO { Email = user.Email, Role = role, Token = token };
         }
@@ -92,7 +93,6 @@ namespace SEP490_G154_Service.Service
         {
             var payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, new GoogleJsonWebSignature.ValidationSettings
             {
-                // để test với Playground  (openid email profile)
                 Audience = new[] { _configuration["GoogleAuth:ClientId"], "407408718192.apps.googleusercontent.com" }
             });
 
@@ -120,7 +120,7 @@ namespace SEP490_G154_Service.Service
             }
 
             var roleName = user.Roles.Select(r => r.Name).FirstOrDefault() ?? "Customer";
-            var token = GenerateJwtToken(user.Email, roleName);
+            var token = GenerateJwtToken(user, roleName);
 
             return new { user.Email, user.FullName, Role = roleName, Token = token };
         }
@@ -157,7 +157,7 @@ namespace SEP490_G154_Service.Service
             }
 
             var roleName = user.Roles.Select(r => r.Name).FirstOrDefault() ?? "Customer";
-            var token = GenerateJwtToken(user.Email, roleName);
+            var token = GenerateJwtToken(user, roleName);
 
             return new { user.Email, user.FullName, Role = roleName, Token = token };
         }
@@ -171,13 +171,9 @@ namespace SEP490_G154_Service.Service
                 if (user == null)
                     throw new KeyNotFoundException("Email not found");
 
-                // Sinh OTP ngẫu nhiên 6 số
                 var otp = new Random().Next(100000, 999999).ToString();
-
-                // Lưu OTP vào cache trong 5 phút
                 _cache.Set($"otp_{user.Email}", otp, TimeSpan.FromMinutes(5));
 
-                // Gửi OTP qua Email
                 await _emailService.SendEmailAsync(
                     user.Email,
                     "Password Reset OTP",
@@ -188,7 +184,6 @@ namespace SEP490_G154_Service.Service
             }
             catch (Exception ex)
             {
-                // Log ra console hoặc log file
                 Console.WriteLine($"[ForgotPasswordAsync] Error: {ex.Message}");
                 return new { success = false, message = "Failed to send OTP", error = ex.Message };
             }
@@ -205,12 +200,10 @@ namespace SEP490_G154_Service.Service
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
                 if (user == null) throw new KeyNotFoundException("User not found");
 
-                // Cập nhật password
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
                 _context.Update(user);
                 await _context.SaveChangesAsync();
 
-                // Xoá OTP sau khi dùng
                 _cache.Remove($"otp_{request.Email}");
 
                 return new { success = true, message = "Password reset successful" };
@@ -222,9 +215,8 @@ namespace SEP490_G154_Service.Service
             }
         }
 
-
         // ========= HELPER =========
-        private string GenerateJwtToken(string email, string role)
+        private string GenerateJwtToken(User user, string role)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]);
@@ -233,15 +225,21 @@ namespace SEP490_G154_Service.Service
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.Email, email),
-                    new Claim(ClaimTypes.Role, role)
-                }),
+            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, role)
+        }),
                 Expires = DateTime.UtcNow.AddHours(2),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                Issuer = _configuration["Jwt:Issuer"],        //thêm Issuer
+                Audience = _configuration["Jwt:Audience"],    //thêm Audience
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
     }
 }
