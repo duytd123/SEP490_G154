@@ -132,6 +132,13 @@ namespace SEP490_G154_Service
 
             app.UseHttpsRedirection();
 
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers.Remove("Cross-Origin-Opener-Policy");
+                context.Response.Headers.Remove("Cross-Origin-Embedder-Policy");
+                await next();
+            });
+
             // Middleware phải đúng thứ tự
             app.UseCors("AllowAll");
             app.UseAuthentication();

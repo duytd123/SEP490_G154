@@ -25,7 +25,7 @@ export default function DongVanLogin({
 
   const nav = useNavigate();
 
-  // ===== INIT GOOGLE + FACEBOOK SDK =====
+  // ===== INIT GOOGLE + FACEBOOK  =====
   useEffect(() => {
     // Google init
     if (window.google) {
@@ -55,6 +55,8 @@ export default function DongVanLogin({
       });
     }
   }, []);
+
+  console.log("Google ID Token = ", (window as any).__GOOGLE_ID_TOKEN__);
 
   // ====== HANDLERS ======
   const handleSubmit = async (e: React.FormEvent) => {
@@ -341,7 +343,7 @@ export default function DongVanLogin({
               </button>
 
               {/* Register link */}
-              <p className="text-sm text-#16a34a text-center">
+              <p className="text-sm text-gray-600 text-center">
                 Chưa có tài khoản?{" "}
                 <Link
                   to="/register/customer"

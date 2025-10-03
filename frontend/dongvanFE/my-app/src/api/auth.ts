@@ -64,89 +64,79 @@ function saveSession(session: AuthSession) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
 }
 
-/* ===== NORMAL LOGIN ===== */
+/* ===== LOGIN ===== */
 export async function loginPassword(email: string, password: string): Promise<AuthSession> {
-  const { data } = await axiosClient.post<{ email: string; Email?: string; token: string; Token?: string; role?: string; Role?: string }>(
-    "/Login/Login",
-    { email: email.trim().toLowerCase(), password }
-  );
+  const { data } = await axiosClient.post<{
+    success: boolean;
+    message: string;
+    email?: string;
+    role?: string;
+    token?: string;
+  }>("/Login/Login", { email: email.trim().toLowerCase(), password });
 
-  const token = data.token ?? data.Token;
-  const mail = data.email ?? data.Email;
-  const session = toSession(token, mail);
+  if (!data.success) {
+    throw new Error(data.message || "Đăng nhập thất bại");
+  }
+
+  const session = toSession(data.token!, data.email);
   saveSession(session);
   return session;
 }
 
 /* ===== GOOGLE LOGIN ===== */
-export async function loginWithGoogleCustomer(idToken: string) {
-  const { data } = await axiosClient.post<{ Email: string; email?: string; Role: string; role?: string; Token: string; token?: string }>(
-    "/Login/LoginWithGoogleCustomer", { idToken }
-  );
-  const session = toSession(data.Token ?? data.token, data.Email ?? data.email);
-  saveSession(session); return session;
+async function handleLoginSocial(endpoint: string, payload: any) {
+  const { data } = await axiosClient.post<{
+    success: boolean;
+    message: string;
+    email?: string;
+    role?: string;
+    token?: string;
+  }>(endpoint, payload);
+
+  if (!data.success) throw new Error(data.message);
+
+  const session = toSession(data.token!, data.email);
+  saveSession(session);
+  return session;
 }
 
-export async function loginWithGoogleSeller(idToken: string) {
-  const { data } = await axiosClient.post<{ Email: string; email?: string; Role: string; role?: string; Token: string; token?: string }>(
-    "/Login/LoginWithGoogleSeller", { idToken }
-  );
-  const session = toSession(data.Token ?? data.token, data.Email ?? data.email);
-  saveSession(session); return session;
+export function loginWithGoogleCustomer(idToken: string) {
+  return handleLoginSocial("/Login/LoginWithGoogleCustomer", { idToken });
 }
-
-export async function loginWithGoogleHost(idToken: string) {
-  const { data } = await axiosClient.post<{ Email: string; email?: string; Role: string; role?: string; Token: string; token?: string }>(
-    "/Login/LoginWithGoogleHost", { idToken }
-  );
-  const session = toSession(data.Token ?? data.token, data.Email ?? data.email);
-  saveSession(session); return session;
+export function loginWithGoogleSeller(idToken: string) {
+  return handleLoginSocial("/Login/LoginWithGoogleSeller", { idToken });
+}
+export function loginWithGoogleHost(idToken: string) {
+  return handleLoginSocial("/Login/LoginWithGoogleHost", { idToken });
 }
 
 /* ===== FACEBOOK LOGIN ===== */
-export async function loginWithFacebookCustomer(accessToken: string) {
-  const { data } = await axiosClient.post<{ Email: string; email?: string; Role: string; role?: string; Token: string; token?: string }>(
-    "/Login/LoginWithFacebookCustomer", { accessToken }
-  );
-  const session = toSession(data.Token ?? data.token, data.Email ?? data.email);
-  saveSession(session); return session;
+export function loginWithFacebookCustomer(accessToken: string) {
+  return handleLoginSocial("/Login/LoginWithFacebookCustomer", { accessToken });
 }
-
-export async function loginWithFacebookSeller(accessToken: string) {
-  const { data } = await axiosClient.post<{ Email: string; email?: string; Role: string; role?: string; Token: string; token?: string }>(
-    "/Login/LoginWithFacebookSeller", { accessToken }
-  );
-  const session = toSession(data.Token ?? data.token, data.Email ?? data.email);
-  saveSession(session); return session;
+export function loginWithFacebookSeller(accessToken: string) {
+  return handleLoginSocial("/Login/LoginWithFacebookSeller", { accessToken });
 }
-
-export async function loginWithFacebookHost(accessToken: string) {
-  const { data } = await axiosClient.post<{ Email: string; email?: string; Role: string; role?: string; Token: string; token?: string }>(
-    "/Login/LoginWithFacebookHost", { accessToken }
-  );
-  const session = toSession(data.Token ?? data.token, data.Email ?? data.email);
-  saveSession(session); return session;
+export function loginWithFacebookHost(accessToken: string) {
+  return handleLoginSocial("/Login/LoginWithFacebookHost", { accessToken });
 }
 
 /* ===== REGISTER ===== */
 export async function registerAdmin(body: RegisterBody) {
   const { data } = await axiosClient.post("/Login/RegisterAdmin", body);
-  return { message: data.message, userId: data.userId, email: data.email ?? data.Email, role: data.role ?? data.Role };
+  return data;
 }
-
 export async function registerSeller(body: RegisterBody) {
   const { data } = await axiosClient.post("/Login/RegisterSeller", body);
-  return { message: data.message, userId: data.userId, email: data.email ?? data.Email, role: data.role ?? data.Role };
+  return data;
 }
-
 export async function registerHost(body: RegisterBody) {
   const { data } = await axiosClient.post("/Login/RegisterHost", body);
-  return { message: data.message, userId: data.userId, email: data.email ?? data.Email, role: data.role ?? data.Role };
+  return data;
 }
-
 export async function registerCustomer(body: RegisterBody) {
   const { data } = await axiosClient.post("/Login/RegisterCustomer", body);
-  return { message: data.message, userId: data.userId, email: data.email ?? data.Email, role: data.role ?? data.Role };
+  return data;
 }
 
 /* ===== SESSION HELPERS ===== */
@@ -158,8 +148,8 @@ export function loadAuthFromStorage(): AuthSession | null {
     if (!parsed?.accessToken) return null;
     setAuthTokens(parsed.accessToken);
     return parsed;
-  } catch { 
-    return null; 
+  } catch {
+    return null;
   }
 }
 
@@ -168,32 +158,23 @@ export function logout() {
   setAuthTokens(null);
 }
 
-// ====== OTHERS ======
+/* ===== OTHERS ===== */
 export async function forgotPassword(email: string) {
   const { data } = await axiosClient.post("/Login/ForgotPassword", { email });
-  return { message: data?.message ?? data?.Message ?? null };
+  return data;
 }
-export async function resetPassword(
-  email: string,
-  newPassword: string,
-  otp: string
-) {
-  const { data } = await axiosClient.post("/Login/ResetPassword", {
+export async function resetPassword(email: string, newPassword: string, otp: string) {
+  const { data } = await axiosClient.post("/Login/ResetPasswordWithOtp", {
     email,
     newPassword,
     otp,
   });
-  return { message: data?.message ?? data?.Message ?? null };
+  return data;
 }
-export async function changePassword(
-  currentPassword: string,
-  newPassword: string
-) {
+export async function changePassword(currentPassword: string, newPassword: string) {
   const { data } = await axiosClient.post("/Login/ChangePassword", {
     currentPassword,
     newPassword,
   });
-  return { message: data?.message ?? data?.Message ?? null };
+  return data;
 }
-
-

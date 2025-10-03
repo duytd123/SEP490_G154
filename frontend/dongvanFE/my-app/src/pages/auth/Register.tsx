@@ -46,7 +46,8 @@ export default function Register({
       setOk(`Đăng ký ${roleName} thành công!`);
       setTimeout(() => nav("/login"), 1000);
     } catch (err: any) {
-      setError(err?.response?.data ?? err?.message ?? "Đăng ký thất bại");
+      const apiMsg = err?.response?.data?.message;
+      setError(apiMsg ?? err?.message ?? "Đăng ký thất bại");
     } finally {
       setSubmitting(false);
     }

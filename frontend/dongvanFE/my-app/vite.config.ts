@@ -11,5 +11,9 @@ export default defineConfig({
   server: {
     https: true,
     port: 5173,
+     headers: {
+      "Cross-Origin-Opener-Policy": "unsafe-none",
+      "Cross-Origin-Embedder-Policy": "unsafe-none"
+    }
   }
 });
