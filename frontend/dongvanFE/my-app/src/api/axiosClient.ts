@@ -10,9 +10,9 @@ let refreshToken: string | null = null;
 let isRefreshing = false;
 let queue: Array<() => void> = [];
 
-export function setAuthTokens(at: string | null, rt: string | null) {
+export function setAuthTokens(at: string | null, rt?: string | null) {
   accessToken = at;
-  refreshToken = rt;
+  refreshToken = rt ?? null;
 }
 
 axiosClient.interceptors.request.use((config) => {
