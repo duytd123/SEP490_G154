@@ -111,6 +111,7 @@ namespace SEP490_G154_Service
             builder.Services.AddScoped<ILogin, LoginService>();
             builder.Services.AddScoped<IHomeStay, HomeStayService>();
             builder.Services.AddScoped<IProducts, ProductService>();
+            builder.Services.AddHttpClient<INews, NewsService>();
             builder.Services.AddScoped<EmailService>();
             builder.Services.AddMemoryCache();
 
