@@ -46,8 +46,44 @@ export default function Register({
       setOk(`Đăng ký ${roleName} thành công!`);
       setTimeout(() => nav("/login"), 1000);
     } catch (err: any) {
-      const apiMsg = err?.response?.data?.message;
-      setError(apiMsg ?? err?.message ?? "Đăng ký thất bại");
+      console.error("❌ API Error:", err);
+
+      if (err.response) {
+        const res = err.response;
+        const data = res.data;
+
+        // ✅ Ưu tiên lấy lỗi validation ASP.NET (400)
+        if (res.status === 400 && data?.errors) {
+          const errorsObj = data.errors;
+          const allMessages = Object.values(errorsObj)
+            .flat()
+            .filter(Boolean)
+            .join("\n");
+          setError(
+            allMessages || "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại."
+          );
+          return;
+        }
+
+        // ✅ Nếu backend trả về message/title riêng
+        if (data?.message || data?.Message || data?.title) {
+          const msg =
+            data.message ||
+            data.Message ||
+            data.title ||
+            "Đăng ký thất bại. Vui lòng thử lại.";
+          setError(msg);
+          return;
+        }
+
+        // ✅ Fallback — nếu vẫn không có gì rõ ràng
+        setError("Đăng ký thất bại. Vui lòng thử lại.");
+      } else if (err.request) {
+        // Không kết nối được tới backend
+        setError("⚠️ Không thể kết nối tới máy chủ. Vui lòng thử lại sau.");
+      } else {
+        setError(err.message || "Đã xảy ra lỗi không xác định.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -56,10 +92,13 @@ export default function Register({
   return (
     <div className="min-h-screen flex items-center justify-center bg-amber-50 p-6">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-gray-900">
-          Đăng ký {roleName}
-        </h2>
-        {error && <p className="text-red-600 mt-2">{error}</p>}
+        <h2 className="text-2xl font-bold text-gray-900">Đăng ký {roleName}</h2>
+        {error && (
+          <div className="mt-3 rounded-lg border border-red-300 bg-red-50 p-3 text-red-700 text-sm whitespace-pre-line">
+             {error}
+          </div>
+        )}
+
         {ok && <p className="text-green-600 mt-2">{ok}</p>}
 
         <form onSubmit={onSubmit} className="mt-4 space-y-4">

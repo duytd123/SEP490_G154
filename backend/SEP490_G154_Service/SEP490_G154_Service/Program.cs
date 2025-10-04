@@ -3,11 +3,12 @@ using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Nest;
 using SEP490_G154_Service.Interface;
 using SEP490_G154_Service.Models;
 using SEP490_G154_Service.Service;
 using SEP490_G154_Service.sHub;
-using Nest;
 using System.Text;
 
 namespace SEP490_G154_Service
@@ -18,52 +19,59 @@ namespace SEP490_G154_Service
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddControllers();
+            // ========== Cấu hình Controller + JSON ==========
+            builder.Services.AddControllers()
+                .AddJsonOptions(opt =>
+                {
+                    opt.JsonSerializerOptions.PropertyNamingPolicy = null; 
+                });
+
             builder.Services.AddEndpointsApiExplorer();
 
-            // ================= Swagger + JWT =================
+            // ========== Swagger + JWT ==========
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                c.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Title = "G154 API",
-                    Version = "v1"
+                    Title = "DongVan Ecoverse API",
+                    Version = "v1",
+                    Description = "REST API cho hệ thống thương mại & du lịch Đồng Văn"
                 });
 
-                // 🔑 Cấu hình JWT Bearer
-                c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                // Cấu hình JWT trong Swagger
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
-                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http, // đổi sang Http
-                    Scheme = "Bearer",                                       // lowercase "bearer" cũng được
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
                     BearerFormat = "JWT",
-                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-                    Description = "Nhập JWT token (chỉ cần dán token, không cần viết Bearer)"
+                    In = ParameterLocation.Header,
+                    Description = "Nhập token JWT (chỉ cần dán token, không cần viết 'Bearer ')"
                 });
 
-                c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] {}
-        }
-    });
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
             });
 
-
-            // ================= Database =================
+            // ========== Database ==========
             builder.Services.AddDbContext<G154context>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("MyCnn")));
 
-            // ================= JWT Authentication =================
-            var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
+            // ========== JWT Authentication ==========
+            var jwtSection = builder.Configuration.GetSection("Jwt");
+            var key = Encoding.UTF8.GetBytes(jwtSection["Key"]);
 
             builder.Services.AddAuthentication(options =>
             {
@@ -72,42 +80,46 @@ namespace SEP490_G154_Service
             })
             .AddJwtBearer(options =>
             {
-                options.RequireHttpsMetadata = false; // chỉ bật true khi deploy thật
+                options.RequireHttpsMetadata = !builder.Environment.IsDevelopment(); 
                 options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    ValidIssuer = jwtSection["Issuer"],
+                    ValidAudience = jwtSection["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(key)
                 };
             })
             .AddCookie()
-            .AddFacebook(facebookOptions =>
+            .AddFacebook(options =>
             {
-                facebookOptions.AppId = builder.Configuration["Authentication:Facebook:AppId"];
-                facebookOptions.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
-                facebookOptions.CallbackPath = "/signin-facebook";
-                facebookOptions.Scope.Add("email");
-                facebookOptions.Fields.Add("name");
-                facebookOptions.Fields.Add("email");
-                facebookOptions.Fields.Add("picture");
+                options.AppId = builder.Configuration["Authentication:Facebook:AppId"];
+                options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+                options.CallbackPath = "/signin-facebook";
+                options.Scope.Add("email");
+                options.Fields.Add("name");
+                options.Fields.Add("email");
+                options.Fields.Add("picture");
             });
 
-            // ================= CORS =================
+            // ========== CORS ==========
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll", policy =>
+                options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.AllowAnyOrigin()
-                          .AllowAnyHeader()
-                          .AllowAnyMethod();
+                    policy.WithOrigins(
+                        "http://localhost:5173",
+                        "https://localhost:5173"
+                    )
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
                 });
             });
 
-            // ================= DI =================
+            // ========== Dependency Injection ==========
             builder.Services.AddScoped<ILogin, LoginService>();
             builder.Services.AddScoped<IHomeStay, HomeStayService>();
             builder.Services.AddScoped<IProducts, ProductService>();
@@ -115,7 +127,7 @@ namespace SEP490_G154_Service
             builder.Services.AddScoped<EmailService>();
             builder.Services.AddMemoryCache();
 
-            // ================= ElasticSearch =================
+            // ========== ElasticSearch ==========
             builder.Services.AddSingleton<IElasticClient>(sp =>
             {
                 var settings = new ConnectionSettings(new Uri("http://localhost:9200"))
@@ -123,8 +135,10 @@ namespace SEP490_G154_Service
                 return new ElasticClient(settings);
             });
 
+            // ========== Build App ==========
             var app = builder.Build();
 
+            // ========== Middleware Pipeline ==========
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -132,7 +146,6 @@ namespace SEP490_G154_Service
             }
 
             app.UseHttpsRedirection();
-
             app.Use(async (context, next) =>
             {
                 context.Response.Headers.Remove("Cross-Origin-Opener-Policy");
@@ -140,12 +153,12 @@ namespace SEP490_G154_Service
                 await next();
             });
 
-            // Middleware phải đúng thứ tự
-            app.UseCors("AllowAll");
+            app.UseCors("AllowFrontend");
             app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
+
             app.Run();
         }
     }
