@@ -180,39 +180,56 @@ namespace SEP490_G154_Service.Service
         // ========= LOGIN FACEBOOK =========
         public async Task<object> LoginWithFacebookAsync(FacebookLoginDTO request, int roleId)
         {
-            using var httpClient = new HttpClient();
-            var url = $"https://graph.facebook.com/me?fields=id,name,email,picture&access_token={request.AccessToken}";
-            var response = await httpClient.GetStringAsync(url);
-            dynamic fbUser = JsonConvert.DeserializeObject(response);
-
-            string email = fbUser.email != null ? fbUser.email.ToString() : $"{fbUser.id}@facebook.com";
-
-            var user = await _context.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null)
+            try
             {
-                user = new User
+                using var httpClient = new HttpClient();
+                var url = $"https://graph.facebook.com/me?fields=id,name,email,picture&access_token={request.AccessToken}";
+                var response = await httpClient.GetStringAsync(url);
+                dynamic fbUser = JsonConvert.DeserializeObject(response);
+
+                string email = fbUser.email != null ? fbUser.email.ToString() : $"{fbUser.id}@facebook.com";
+
+                var user = await _context.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Email == email);
+                if (user == null)
                 {
-                    Email = email,
-                    PasswordHash = Guid.NewGuid().ToString(),
-                    FullName = fbUser.name,
-                    AvatarUrl = fbUser.picture?.data?.url?.ToString(),
-                    Status = 1,
-                    Roles = new List<Role>()
+                    user = new User
+                    {
+                        Email = email,
+                        PasswordHash = Guid.NewGuid().ToString(),
+                        FullName = fbUser.name,
+                        AvatarUrl = fbUser.picture?.data?.url?.ToString(),
+                        Status = 1,
+                        Roles = new List<Role>()
+                    };
+
+                    var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleId == roleId);
+                    if (role == null)
+                        return new { success = false, message = $"Không tìm thấy quyền với ID = {roleId}" };
+
+                    user.Roles.Add(role);
+                    _context.Users.Add(user);
+                    await _context.SaveChangesAsync();
+                }
+
+                var roleName = user.Roles.Select(r => r.Name).FirstOrDefault() ?? "Customer";
+                var token = GenerateJwtToken(user, roleName);
+
+                return new
+                {
+                    success = true,
+                    message = "Đăng nhập bằng Facebook thành công",
+                    email = user.Email,
+                    fullName = user.FullName,
+                    role = roleName,
+                    token = token
                 };
-
-                var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleId == roleId);
-                if (role == null) throw new InvalidOperationException($"Role {roleId} not found");
-
-                user.Roles.Add(role);
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
             }
-
-            var roleName = user.Roles.Select(r => r.Name).FirstOrDefault() ?? "Customer";
-            var token = GenerateJwtToken(user, roleName);
-
-            return new { user.Email, user.FullName, Role = roleName, Token = token };
+            catch (Exception ex)
+            {
+                return new { success = false, message = "Đăng nhập bằng Facebook thất bại", error = ex.Message };
+            }
         }
+
 
         // ========== FORGOT PASSWORD ==========
         public async Task<object> ForgotPasswordAsync(ForgotPasswordDTO request)
