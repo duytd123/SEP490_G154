@@ -1,16 +1,14 @@
-﻿
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Facebook;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-
-using Nest;
-
+using Microsoft.IdentityModel.Tokens;
 using SEP490_G154_Service.Interface;
 using SEP490_G154_Service.Models;
 using SEP490_G154_Service.Service;
 using SEP490_G154_Service.sHub;
-
-
+using Nest;
+using System.Text;
 
 namespace SEP490_G154_Service
 {
@@ -20,73 +18,112 @@ namespace SEP490_G154_Service
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
-
-
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-
             builder.Services.AddEndpointsApiExplorer();
 
-            builder.Services.AddSwaggerGen();
+            // ================= Swagger + JWT =================
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "G154 API",
+                    Version = "v1"
+                });
 
+                // 🔑 Cấu hình JWT Bearer
+                c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http, // đổi sang Http
+                    Scheme = "Bearer",                                       // lowercase "bearer" cũng được
+                    BearerFormat = "JWT",
+                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                    Description = "Nhập JWT token (chỉ cần dán token, không cần viết Bearer)"
+                });
+
+                c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+            });
+
+
+            // ================= Database =================
             builder.Services.AddDbContext<G154context>(options =>
-  options.UseSqlServer(builder.Configuration.GetConnectionString("MyCnn")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("MyCnn")));
 
+            // ================= JWT Authentication =================
+            var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
 
             builder.Services.AddAuthentication(options =>
             {
-                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = FacebookDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-.AddCookie() // Cookie để giữ session login
-.AddFacebook(facebookOptions =>
-{
-    facebookOptions.AppId = builder.Configuration["Authentication:Facebook:AppId"];
-    facebookOptions.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false; // chỉ bật true khi deploy thật
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                };
+            })
+            .AddCookie()
+            .AddFacebook(facebookOptions =>
+            {
+                facebookOptions.AppId = builder.Configuration["Authentication:Facebook:AppId"];
+                facebookOptions.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+                facebookOptions.CallbackPath = "/signin-facebook";
+                facebookOptions.Scope.Add("email");
+                facebookOptions.Fields.Add("name");
+                facebookOptions.Fields.Add("email");
+                facebookOptions.Fields.Add("picture");
+            });
 
-    // Callback URL -> phải trùng với cái bạn điền trong Facebook Dev
-    facebookOptions.CallbackPath = "/signin-facebook";
-
-    // Yêu cầu thêm quyền
-    facebookOptions.Scope.Add("email");
-    facebookOptions.Fields.Add("name");
-    facebookOptions.Fields.Add("email");
-    facebookOptions.Fields.Add("picture");
-
-});
-
-            // Thêm CORS
+            // ================= CORS =================
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", policy =>
                 {
-                    policy.AllowAnyOrigin()   // Cho phép mọi origin (hoặc bạn chỉ định: "http://127.0.0.1:5500")
+                    policy.AllowAnyOrigin()
                           .AllowAnyHeader()
                           .AllowAnyMethod();
                 });
             });
-            // Đăng ký DI cho LoginService
+
+            // ================= DI =================
             builder.Services.AddScoped<ILogin, LoginService>();
             builder.Services.AddScoped<IHomeStay, HomeStayService>();
+            builder.Services.AddScoped<IProducts, ProductService>();
+            builder.Services.AddScoped<EmailService>();
+            builder.Services.AddMemoryCache();
 
-            // cấu hình ElasticSearch client
+            // ================= ElasticSearch =================
             builder.Services.AddSingleton<IElasticClient>(sp =>
             {
-                var settings = new ConnectionSettings(new Uri("http://localhost:9200")) // URL Elastic
-                    .DefaultIndex("homestays"); // index mặc định
+                var settings = new ConnectionSettings(new Uri("http://localhost:9200"))
+                    .DefaultIndex("homestays");
                 return new ElasticClient(settings);
             });
 
-
-            builder.Services.AddScoped<EmailService>();
-
-            builder.Services.AddMemoryCache();
-
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -95,13 +132,19 @@ namespace SEP490_G154_Service
 
             app.UseHttpsRedirection();
 
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers.Remove("Cross-Origin-Opener-Policy");
+                context.Response.Headers.Remove("Cross-Origin-Embedder-Policy");
+                await next();
+            });
+
+            // Middleware phải đúng thứ tự
+            app.UseCors("AllowAll");
+            app.UseAuthentication();
             app.UseAuthorization();
 
-            // bật CORS
-            app.UseCors("AllowAll");
-
             app.MapControllers();
-
             app.Run();
         }
     }
