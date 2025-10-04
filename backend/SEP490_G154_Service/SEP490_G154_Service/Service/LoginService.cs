@@ -34,7 +34,14 @@ namespace SEP490_G154_Service.Service
             var user = await _context.Users.Include(u => u.Roles)
                 .FirstOrDefaultAsync(u => u.Email == request.Email);
 
-            if (user == null) throw new UnauthorizedAccessException("Invalid email or password");
+            if (user == null)
+            {
+                return new LoginResponseDTO
+                {
+                    Success = false,
+                    Message = "Email hoặc mật khẩu không đúng."
+                };
+            }
 
             bool isValidPassword = false;
 
@@ -50,61 +57,98 @@ namespace SEP490_G154_Service.Service
                 await _context.SaveChangesAsync();
             }
 
-            if (!isValidPassword) throw new UnauthorizedAccessException("Invalid email or password");
+            if (!isValidPassword)
+            {
+                return new LoginResponseDTO
+                {
+                    Success = false,
+                    Message = "Email hoặc mật khẩu không đúng."
+                };
+            }
 
             var role = user.Roles.Select(r => r.Name).FirstOrDefault() ?? "Customer";
             var token = GenerateJwtToken(user, role);
 
-            return new LoginResponseDTO { Email = user.Email, Role = role, Token = token };
+            return new LoginResponseDTO
+            {
+                Success = true,
+                Message = "Đăng nhập thành công",
+                Email = user.Email,
+                Role = role,
+                Token = token
+            };
         }
+
 
         // ========= REGISTER =========
         public async Task<object> RegisterAsync(CreateAcc newAcc, int defaultRoleId)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == newAcc.Email))
-                throw new InvalidOperationException("Email already exists");
-            if (await _context.Users.AnyAsync(u => u.Phone == newAcc.Phone))
-                throw new InvalidOperationException("Phone already exists");
-
-            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(newAcc.Password);
-
-            var newUser = new User
+            try
             {
-                Email = newAcc.Email,
-                PasswordHash = hashedPassword,
-                FullName = newAcc.FullName,
-                Phone = newAcc.Phone,
-                Status = 1,
-                Roles = new List<Role>()
-            };
+                if (await _context.Users.AnyAsync(u => u.Email == newAcc.Email))
+                    return new { success = false, message = "Email này đã được sử dụng." };
 
-            var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleId == defaultRoleId);
-            if (role == null) throw new InvalidOperationException($"Role {defaultRoleId} not found");
+                if (await _context.Users.AnyAsync(u => u.Phone == newAcc.Phone))
+                    return new { success = false, message = "Số điện thoại này đã được sử dụng." };
 
-            newUser.Roles.Add(role);
-            _context.Users.Add(newUser);
-            await _context.SaveChangesAsync();
+                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(newAcc.Password);
 
-            return new { message = "Registered", newUser.UserId, newUser.Email, Role = role.Name };
+                var newUser = new User
+                {
+                    Email = newAcc.Email,
+                    PasswordHash = hashedPassword,
+                    FullName = newAcc.FullName,
+                    Phone = newAcc.Phone,
+                    Status = 1,
+                    Roles = new List<Role>()
+                };
+
+                var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleId == defaultRoleId);
+                if (role == null)
+                    return new { success = false, message = $"Không tìm thấy quyền với ID = {defaultRoleId}" };
+
+                newUser.Roles.Add(role);
+                _context.Users.Add(newUser);
+                await _context.SaveChangesAsync();
+
+                return new
+                {
+                    success = true,
+                    message = "Đăng ký thành công.",
+                    userId = newUser.UserId,
+                    email = newUser.Email,
+                    role = role.Name
+                };
+            }
+            catch (Exception ex)
+            {
+                // log lỗi server
+                Console.WriteLine($"[Đăng ký] Lỗi: {ex.Message}");
+                return new { success = false, message = "Đăng ký thất bại.", error = ex.Message };
+            }
         }
+
 
         // ========= LOGIN GOOGLE =========
         public async Task<object> LoginWithGoogleAsync(GoogleLoginDTO request, int roleId)
         {
-            var payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, new GoogleJsonWebSignature.ValidationSettings
-            {
-                Audience = new[] { _configuration["GoogleAuth:ClientId"], "407408718192.apps.googleusercontent.com" }
-            });
+            var payload = await GoogleJsonWebSignature.ValidateAsync(
+                request.IdToken,
+                new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { _configuration["GoogleAuth:ClientId"] }
+                });
 
             var email = payload.Email;
-            var user = await _context.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Email == email);
+            var user = await _context.Users.Include(u => u.Roles)
+                                           .FirstOrDefaultAsync(u => u.Email == email);
 
             if (user == null)
             {
                 user = new User
                 {
                     Email = email,
-                    PasswordHash = Guid.NewGuid().ToString(),
+                    PasswordHash = Guid.NewGuid().ToString(), // random string (Google user không cần password)
                     FullName = payload.Name,
                     AvatarUrl = payload.Picture,
                     Status = 1,
@@ -122,8 +166,16 @@ namespace SEP490_G154_Service.Service
             var roleName = user.Roles.Select(r => r.Name).FirstOrDefault() ?? "Customer";
             var token = GenerateJwtToken(user, roleName);
 
-            return new { user.Email, user.FullName, Role = roleName, Token = token };
+            return new LoginResponseDTO
+            {
+                Success = true,
+                Message = "Google login successful",
+                Email = user.Email,
+                Role = roleName,
+                Token = token
+            };
         }
+
 
         // ========= LOGIN FACEBOOK =========
         public async Task<object> LoginWithFacebookAsync(FacebookLoginDTO request, int roleId)
