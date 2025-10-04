@@ -17,6 +17,11 @@ export type RegisterBody = {
   phone: string;
 };
 
+axiosClient.interceptors.request.use(config => {
+  console.log("📡 Sending request:", config.method, config.url);
+  return config;
+});
+
 /* ===== JWT HELPERS ===== */
 function base64UrlToJson<T>(b64url: string): T {
   try {

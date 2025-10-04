@@ -13,7 +13,7 @@ let queue: Array<() => void> = [];
 /* ===== SET TOKENS ===== */
 export function setAuthTokens(at: string | null, rt?: string | null) {
   accessToken = at;
-  refreshToken = rt ?? refreshToken; // fallback giữ refresh cũ nếu không truyền mới
+  refreshToken = rt ?? refreshToken; 
 }
 
 /* ===== REQUEST INTERCEPTOR ===== */
@@ -53,23 +53,32 @@ axiosClient.interceptors.response.use(
         accessToken = null;
         refreshToken = null;
         queue = [];
-        // clear localStorage nếu có
         localStorage.removeItem(import.meta.env.VITE_TOKEN_STORAGE_KEY ?? "auth");
-        throw new Error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.");
+        return Promise.reject({
+          message: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.",
+        });
       } finally {
         isRefreshing = false;
       }
     }
 
-    // === XỬ LÝ ERROR RESPONSE KHÁC ===
-    const msg =
-      error?.response?.data?.message ??
-      error?.response?.data?.Message ??
-      error?.response?.data?.title ??
-      error.message ??
-      "Có lỗi xảy ra, vui lòng thử lại.";
-    throw new Error(msg);
+    // === XỬ LÝ LỖI KHÁC ===
+    if (error.response) {
+      return Promise.reject(error);
+    }
+
+    if (error.request) {
+      return Promise.reject({
+        message: "⚠️ Không thể kết nối tới máy chủ. Vui lòng thử lại sau.",
+        request: error.request,
+      });
+    }
+
+    return Promise.reject({
+      message: error.message || "Đã xảy ra lỗi không xác định.",
+    });
   }
 );
+
 
 export default axiosClient;

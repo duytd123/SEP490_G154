@@ -7,6 +7,7 @@ using SEP490_G154_Service.DTOs.MaLogin;
 using SEP490_G154_Service.Interface;
 using SEP490_G154_Service.Models;
 using SEP490_G154_Service.sHub;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -85,12 +86,15 @@ namespace SEP490_G154_Service.Service
         {
             try
             {
+                // Kiểm tra email trùng
                 if (await _context.Users.AnyAsync(u => u.Email == newAcc.Email))
-                    return new { success = false, message = "Email này đã được sử dụng." };
+                    throw new ValidationException("Email này đã được sử dụng.");
 
+                // Kiểm tra số điện thoại trùng
                 if (await _context.Users.AnyAsync(u => u.Phone == newAcc.Phone))
-                    return new { success = false, message = "Số điện thoại này đã được sử dụng." };
+                    throw new ValidationException("Số điện thoại này đã được sử dụng.");
 
+                // Hash mật khẩu
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(newAcc.Password);
 
                 var newUser = new User
@@ -103,9 +107,8 @@ namespace SEP490_G154_Service.Service
                     Roles = new List<Role>()
                 };
 
-                var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleId == defaultRoleId);
-                if (role == null)
-                    return new { success = false, message = $"Không tìm thấy quyền với ID = {defaultRoleId}" };
+                var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleId == defaultRoleId)
+                    ?? throw new ValidationException($"Không tìm thấy quyền người dùng với ID = {defaultRoleId}");
 
                 newUser.Roles.Add(role);
                 _context.Users.Add(newUser);
@@ -114,17 +117,25 @@ namespace SEP490_G154_Service.Service
                 return new
                 {
                     success = true,
-                    message = "Đăng ký thành công.",
+                    message = "Đăng ký thành công!",
                     userId = newUser.UserId,
                     email = newUser.Email,
                     role = role.Name
                 };
             }
+            catch (ValidationException vex)
+            {
+                return new { success = false, message = vex.Message };
+            }
             catch (Exception ex)
             {
-                // log lỗi server
-                Console.WriteLine($"[Đăng ký] Lỗi: {ex.Message}");
-                return new { success = false, message = "Đăng ký thất bại.", error = ex.Message };
+                Console.WriteLine($"[RegisterAsync] Lỗi hệ thống: {ex}");
+                return new
+                {
+                    success = false,
+                    message = "Đăng ký thất bại do lỗi hệ thống.",
+                    error = ex.Message
+                };
             }
         }
 
