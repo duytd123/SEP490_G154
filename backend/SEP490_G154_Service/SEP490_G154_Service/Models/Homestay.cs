@@ -23,6 +23,8 @@ public partial class Homestay
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
+    public virtual ICollection<HomesStayImage> HomesStayImages { get; set; } = new List<HomesStayImage>();
+
     public virtual ICollection<HomestayRoomType> HomestayRoomTypes { get; set; } = new List<HomestayRoomType>();
 
     public virtual User Host { get; set; } = null!;
