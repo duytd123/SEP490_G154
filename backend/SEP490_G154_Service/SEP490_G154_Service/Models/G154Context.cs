@@ -61,11 +61,6 @@ public partial class G154context : DbContext
 
     public virtual DbSet<Wishlist> Wishlists { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-        optionsBuilder.UseSqlServer(config.GetConnectionString("MyCnn"));
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -186,6 +181,11 @@ public partial class G154context : DbContext
             entity.HasKey(e => e.ImageId).HasName("PK__HomesSta__7516F70C61BA6D61");
 
             entity.Property(e => e.Url).HasMaxLength(500);
+
+            entity.HasOne(d => d.HomeStay).WithMany(p => p.HomesStayImages)
+                .HasForeignKey(d => d.HomeStayId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_HomesStayImages_Homestays");
         });
 
         modelBuilder.Entity<Homestay>(entity =>

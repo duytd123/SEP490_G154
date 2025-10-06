@@ -10,4 +10,6 @@ public partial class HomesStayImage
     public long HomeStayId { get; set; }
 
     public string Url { get; set; } = null!;
+
+    public virtual Homestay HomeStay { get; set; } = null!;
 }
