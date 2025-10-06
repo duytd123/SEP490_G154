@@ -10,20 +10,27 @@ let refreshToken: string | null = null;
 let isRefreshing = false;
 let queue: Array<() => void> = [];
 
-export function setAuthTokens(at: string | null, rt: string | null) {
+/* ===== SET TOKENS ===== */
+export function setAuthTokens(at: string | null, rt?: string | null) {
   accessToken = at;
-  refreshToken = rt;
+  refreshToken = rt ?? refreshToken; 
 }
 
+/* ===== REQUEST INTERCEPTOR ===== */
 axiosClient.interceptors.request.use((config) => {
-  if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
   return config;
 });
 
+/* ===== RESPONSE INTERCEPTOR ===== */
 axiosClient.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
+
+    // === 401 UNAUTHORIZED ===
     if (error.response?.status === 401 && !original._retry && refreshToken) {
       if (isRefreshing) {
         await new Promise<void>((resolve) => queue.push(resolve));
@@ -38,6 +45,7 @@ axiosClient.interceptors.response.use(
         );
         accessToken = res.data.accessToken;
         refreshToken = res.data.refreshToken ?? refreshToken;
+
         queue.forEach((fn) => fn());
         queue = [];
         return axiosClient(original);
@@ -45,13 +53,32 @@ axiosClient.interceptors.response.use(
         accessToken = null;
         refreshToken = null;
         queue = [];
-        throw e;
+        localStorage.removeItem(import.meta.env.VITE_TOKEN_STORAGE_KEY ?? "auth");
+        return Promise.reject({
+          message: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.",
+        });
       } finally {
         isRefreshing = false;
       }
     }
-    throw error;
+
+    // === XỬ LÝ LỖI KHÁC ===
+    if (error.response) {
+      return Promise.reject(error);
+    }
+
+    if (error.request) {
+      return Promise.reject({
+        message: "⚠️ Không thể kết nối tới máy chủ. Vui lòng thử lại sau.",
+        request: error.request,
+      });
+    }
+
+    return Promise.reject({
+      message: error.message || "Đã xảy ra lỗi không xác định.",
+    });
   }
 );
+
 
 export default axiosClient;

@@ -61,7 +61,7 @@ public partial class G154context : DbContext
 
     public virtual DbSet<Wishlist> Wishlists { get; set; }
 
-   
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Blog>(entity =>
